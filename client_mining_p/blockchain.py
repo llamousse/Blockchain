@@ -101,18 +101,47 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
-@app.route('/mine', methods=['GET'])
-def mine():
-    # Run the proof of work algorithm to get the next proof
-    proof = blockchain.proof_of_work(blockchain.last_block)
-    # Forge the new Block by adding it to the chain with the proof
-    previous_hash = blockchain.hash(blockchain.last_block)
-    block = blockchain.new_block(proof, previous_hash)
-    response = {
-        'new_block': block
-    }
-    return jsonify(response), 200 # 200 = success
+# @app.route('/mine', methods=['GET'])
+# def mine():
+#     # Run the proof of work algorithm to get the next proof
+#     proof = blockchain.proof_of_work(blockchain.last_block)
+#     # Forge the new Block by adding it to the chain with the proof
+#     previous_hash = blockchain.hash(blockchain.last_block)
+#     block = blockchain.new_block(proof, previous_hash)
+#     response = {
+#         'new_block': block
+#     }
+#     return jsonify(response), 200 # 200 = success
 
+@app.route('/mine', methods=['POST'])
+def mine():
+    data = request.get_json()
+    print("blockchain data: ", data)
+
+    # check that 'proof' and 'id' are present
+    if data['proof'] and data['id']:
+        proof = data['proof']
+        block_string = json.dumps(blockchain.last_block, sort_keys=True)
+        if blockchain.valid_proof(block_string, proof):
+            # Forge the new Block by adding it to the chain with the proof
+            previous_hash = blockchain.hash(blockchain.last_block)
+            block = blockchain.new_block(proof, previous_hash)
+            response = {
+                'message': 'Success'
+            }
+            return jsonify(response), 200
+        # return 400 error using jsonify(response) with a message
+        # return message indicating success/failure
+        else:
+            response = {
+                'message': 'Failed validating proof'
+            }
+            return jsonify(response), 400
+    else:
+        response: {
+            'message': 'Failed'
+        }
+        return jsonify(response), 400
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
