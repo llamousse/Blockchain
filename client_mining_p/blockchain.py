@@ -124,10 +124,10 @@ def full_chain():
     return jsonify(response), 200
 
 @app.route('/last_block', methods=['GET'])
-def last_chain():
+def last_block():
     response = {
         # TODO: Return the last block in the chain
-        'chain': blockchain.chain[-1]
+        'last_block': blockchain.chain[len(blockchain.chain)-1]
     }
     return jsonify(response), 200
 
